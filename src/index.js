@@ -41,30 +41,18 @@ const Board = ({squares, onClick}) => {
 const Game = () => {
     const [nextPlayer, setNextPlayer] = useState('X');
     const [isGameOver, setGameOver] = useState(false);
-    // const [squares, setSquares] = useState(Array(9).fill(null));
     const [status, setStatus] = useState('Следующий игрок: ' + (nextPlayer === 'X' ? 'X' : 'O'));
-    const [history, setHistory] = useState( [{squares: Array(9).fill(null)}] );
-    // let steps = history.map((step, val) => {
-    //     let text = (val ? 'Вернуться к шагу' + step : 'Начать заново');
-    //     return (
-    //         <li>
-    //             <button>{text}</button>
-    //         </li>
-    //     )
-    // })
+    const [squares, setSquares] = useState(Array(9).fill(null));
 
     const handleClick = (i) => {
-        const current = history[history.length - 1];
-        const squares = current.squares.slice();
-
-        if (isGameOver || squares[i]) {
+        let current = squares.slice();
+        
+        if (isGameOver || current[i]) {
             return;
-        }
-        else {
+        } else {
             setNextPlayer(nextPlayer === 'X' ? 'O' : 'X');
-            squares[i] = nextPlayer;
-            // setHistory(history.push(squares));
-            setHistory(history.push({squares: squares}))
+            current[i] = nextPlayer;
+            setSquares(current);
         }
     }
     
@@ -88,46 +76,24 @@ const Game = () => {
         return null;
     }
 
-    // const renderSteps = () => {
-    //     let lis = [<li><button>{'Вернуться к шагу' + history.length}</button></li>];
-    //     // let ol = <ol>{lis}</ol>;
-    //     for (let i = 0; i <= history.length; i++) {
-    //         if (i !== 0) {
-    //             lis.push(<li><button>{'Вернуться к шагу' + history.length}</button></li>)
-    //         }
-    //     }
-    //     return lis.join('');
-    // }
-
-    // useEffect(() => {
-    //     let step = history.length;
-    //     let stepInner = (history.length !== 1 ? 'Вернуться к шагу' + step : 'Начать заново')
-    //     let stepsCopy = steps.slice().push(<li><button>{stepInner}</button></li>);
-    //     setSteps(stepsCopy)
-    // }, [history.length, steps])
-
     useEffect(() => {
-        const current = history[history.length - 1];
-        const winner = calculateWinner(current.squares);
+        const winner = calculateWinner(squares);
         if (winner) {
             setStatus('Выиграл: ' + winner);
             setGameOver(true);
         } else {
             setStatus('Следующий игрок: ' + (nextPlayer === 'X' ? 'X' : 'O'));
         }
-    }, [status, nextPlayer, history])
+    }, [status, nextPlayer, squares])
 
-    useEffect(() => {
-        console.log(history[history.length - 1].squares);
-    })
     return (
         <div className="game">
             <div className="game-board">
-                <Board squares={history[history.length-1].squares} onClick={() => handleClick}/>
+                <Board squares={squares} onClick={handleClick}/>
             </div>
             <div className="game-info">
                 <div className="status">{status}</div>
-                {/* <ul>{steps}</ul> */}
+                {/* <ol>{getSteps()}</ol> */}
             </div>
         </div>
     )
