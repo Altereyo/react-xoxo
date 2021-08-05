@@ -6,7 +6,7 @@ import './index.css';
 
 const Square = ({val, onClick}) => {
     return (
-        <button className="square" onClick={ onClick } >
+        <button className="square" onClick={onClick} >
             { val }
         </button>
     )
@@ -42,19 +42,46 @@ const Game = () => {
     const [nextPlayer, setNextPlayer] = useState('X');
     const [isGameOver, setGameOver] = useState(false);
     const [status, setStatus] = useState('Следующий игрок: ' + (nextPlayer === 'X' ? 'X' : 'O'));
-    const [squares, setSquares] = useState(Array(9).fill(null));
+    const [history, setHistory] = useState([Array(9).fill(null)]);
+    const [step, setStep] = useState(0);
 
     const handleClick = (i) => {
-        let current = squares.slice();
-        
+        let current = history[step].slice();
         if (isGameOver || current[i]) {
             return;
         } else {
+            setStep(step + 1)
             setNextPlayer(nextPlayer === 'X' ? 'O' : 'X');
-            current[i] = nextPlayer;
-            setSquares(current);
+            current.splice(i, 1, nextPlayer);
+            setHistory((prevState) => {
+                const newHistory = [...prevState];
+                newHistory.push(current);
+                return newHistory;
+            });
         }
     }
+    
+    const switchStep = (goto) => {
+        setStep(goto);
+        setNextPlayer(goto % 2 ? 'O' : 'X');
+        setHistory((prevState) => {
+            const newHistory = [...prevState];
+            newHistory.splice(++goto, newHistory.length-1);
+            return newHistory;
+        });
+        console.log('history === ', history);
+    }
+
+    const getSteps = () => {
+        let list = history.map((val, key) => {
+            let text = key === 0 ? 'Вернуться к началу игры' : 'Перейти к ходу #' + key;
+            return  <li key={key}>
+                        <button onClick={() => switchStep(key)}>{text}</button>
+                    </li>
+        })
+        return list;
+    }
+    
     
     const calculateWinner = (squares) => {
         const lines = [
@@ -77,23 +104,23 @@ const Game = () => {
     }
 
     useEffect(() => {
-        const winner = calculateWinner(squares);
+        const winner = calculateWinner(history[step]);
         if (winner) {
             setStatus('Выиграл: ' + winner);
             setGameOver(true);
         } else {
             setStatus('Следующий игрок: ' + (nextPlayer === 'X' ? 'X' : 'O'));
         }
-    }, [status, nextPlayer, squares])
+    }, [nextPlayer, history, step])
 
     return (
         <div className="game">
             <div className="game-board">
-                <Board squares={squares} onClick={handleClick}/>
+                <Board squares={history[step]} onClick={handleClick}/>
             </div>
             <div className="game-info">
                 <div className="status">{status}</div>
-                {/* <ol>{getSteps()}</ol> */}
+                <ol>{getSteps()}</ol>
             </div>
         </div>
     )
